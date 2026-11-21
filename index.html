@@ -54,7 +54,7 @@
     .download-box{border:1px solid #3e9854;background:radial-gradient(ellipse at 50% 0%,#183b22,#0b130d 70%);border-radius:15px;padding:42px 24px;text-align:center}
     .download-box h2{font-size:32px;margin:8px 0}.download-box p{color:#b0beb4}.download-box .btn{margin-top:12px}
     footer{border-top:1px solid var(--line);padding:26px 0;color:#829087;font-size:11px}.foot{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
-    @media(max-width:760px){nav{display:none;position:absolute;top:76px;left:0;right:0;background:#08100b;padding:18px 5%;border-bottom:1px solid var(--line);flex-direction:column;align-items:flex-start;gap:16px}.menu{display:block}.nav-cta{display:none}.hero{padding:48px 0}.hero-grid,.product{grid-template-columns:1fr}.hero-grid{gap:28px}.stats{margin-top:25px}.features,.steps{grid-template-columns:1fr}.product-info{padding:22px}section{padding:52px 0}}
+    @media(max-width:760px){.pl-owner-link{padding:9px 10px;font-size:10px}nav{display:none;position:absolute;top:76px;left:0;right:0;background:#08100b;padding:18px 5%;border-bottom:1px solid var(--line);flex-direction:column;align-items:flex-start;gap:16px}.menu{display:block}.nav-cta{display:none}.hero{padding:48px 0}.hero-grid,.product{grid-template-columns:1fr}.hero-grid{gap:28px}.stats{margin-top:25px}.features,.steps{grid-template-columns:1fr}.product-info{padding:22px}section{padding:52px 0}}
 
     /* POWER LINE motion layer */
     body{background-size:160% 160%;animation:ambientShift 22s ease-in-out infinite alternate}
@@ -87,7 +87,7 @@
 
   
 /* POWER LINE owner interface */
-.pl-owner-entry{display:flex;justify-content:center;padding:12px 5% 22px}.pl-owner-link{background:transparent;border:1px solid #344b39;color:#8fa997;border-radius:30px;padding:8px 14px;font:inherit;font-size:11px;cursor:pointer}.pl-owner-link:hover{border-color:#8aff9d;color:#8aff9d}
+.pl-owner-link{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;background:linear-gradient(135deg,#9affae,#27d85b);border:1px solid #70ff91;color:#061009;border-radius:7px;padding:10px 14px;font:inherit;font-size:12px;font-weight:900;cursor:pointer;box-shadow:0 7px 24px #32e66b22}.pl-owner-link:hover{filter:brightness(1.08);transform:translateY(-1px)}
 .pl-modal[hidden]{display:none}.pl-modal{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:18px}.pl-modal-backdrop{position:absolute;inset:0;background:#000c;backdrop-filter:blur(7px)}.pl-panel{position:relative;width:min(100%,560px);max-height:90vh;overflow:auto;background:linear-gradient(145deg,#111d15,#080d09);border:1px solid #3d6948;border-radius:16px;padding:28px;box-shadow:0 24px 80px #000b}.pl-panel h2{margin:8px 0 5px}.pl-close{position:absolute;right:14px;top:10px;border:0;background:transparent;color:#dce9df;font-size:30px;cursor:pointer}.pl-form{display:grid;gap:13px;margin-top:18px}.pl-form label{display:grid;gap:6px;color:#c9d7cd;font-size:13px}.pl-form input,.pl-form textarea,.pl-form select{width:100%;box-sizing:border-box;background:#080f0a;border:1px solid #344b39;border-radius:8px;padding:11px;color:#eef7ef;font:inherit}.pl-form input:focus,.pl-form textarea:focus,.pl-form select:focus{outline:2px solid #58db78;outline-offset:1px}.pl-form .btn{cursor:pointer}.pl-message{min-height:20px;color:#a8f5b8;font-size:13px}.pl-muted{color:#9cab9f;font-size:13px}.pl-admin-head,.pl-two{display:flex;justify-content:space-between;align-items:center;gap:12px}.pl-two>*{flex:1}.pl-admin-head{margin:22px 0 8px}.pl-admin-head h3{margin:0}.pl-release-list{display:grid;gap:12px;margin:24px auto 0;max-width:760px;text-align:left}.pl-release-card{display:flex;gap:15px;align-items:center;padding:14px;background:#09120c;border:1px solid #294331;border-radius:10px}.pl-release-card img{width:72px;height:72px;object-fit:cover;border-radius:8px}.pl-release-card h3{margin:0 0 5px;font-size:17px}.pl-release-card p{margin:0 0 7px;color:#aebbb1;font-size:13px}.pl-release-card a{color:#8aff9d;font-weight:800;font-size:12px}.pl-release-meta{color:#829087;font-size:11px}@media(max-width:560px){.pl-panel{padding:22px 17px}.pl-two{display:grid}.pl-release-card{align-items:flex-start}.pl-release-card img{width:58px;height:58px}}
 </style>
 </head>
@@ -99,6 +99,7 @@
       <a href="#home">HOME</a><a href="#products">PRODUCTS</a><a href="#features">FEATURES</a><a href="#downloads">DOWNLOADS</a><a href="#about">ABOUT</a>
     </nav>
     <a class="nav-cta" href="#downloads">GET THE PLUGIN</a>
+    <button class="pl-owner-link" id="plOwnerOpen" type="button">OWNER LOGIN</button>
     <button class="menu" type="button" aria-controls="nav" aria-expanded="false">MENU</button>
   </div>
 </header>
@@ -169,7 +170,6 @@
     </div>
   </section>
 </main>
-<div class="pl-owner-entry"><button class="pl-owner-link" id="plOwnerOpen" type="button">Owner Login</button></div>
 <div class="pl-modal" id="plOwnerModal" hidden aria-hidden="true"><div class="pl-modal-backdrop" data-pl-close></div>
 <section class="pl-panel" role="dialog" aria-modal="true" aria-labelledby="plPanelTitle"><button class="pl-close" type="button" data-pl-close aria-label="Close">×</button>
 <div class="eyebrow">POWER LINE PRIVATE AREA</div><h2 id="plPanelTitle">Owner Login</h2><p class="pl-muted">Only the site owner can publish plugins. Sign-in is verified by the secure backend.</p>

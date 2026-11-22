@@ -1,0 +1,1 @@
+export async function onRequestGet({env,params}){const p=await env.DB.prepare("SELECT zip_key FROM plugins WHERE id=? AND status IN ('published','pre-release')").bind(params.id).first();if(!p)return new Response('Not found',{status:404});return Response.redirect(p.zip_key,302)}

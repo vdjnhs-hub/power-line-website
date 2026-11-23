@@ -14,6 +14,7 @@ export async function onRequestPost({ request, env }) {
   }
 
   let body;
+
   try {
     body = await request.json();
   } catch {
@@ -23,18 +24,34 @@ export async function onRequestPost({ request, env }) {
   const email = String(body.email || '').trim().toLowerCase();
   const password = String(body.password || '');
 
-  const ownerEmail = String(env.OWNER_EMAIL || '').trim().toLowerCase();
+  const ownerEmail = String(env.OWNER_EMAIL || '')
+    .trim()
+    .toLowerCase();
+
   const storedHash = String(env.OWNER_PASSWORD_HASH || '').trim();
 
   if (!ownerEmail || !storedHash) {
-    return json({ message: 'Owner credentials are not configured yet.' }, 503);
+    return json({
+      message: 'Owner credentials are not configured.'
+    }, 503);
   }
 
-  if (
-    email !== ownerEmail ||
-    !await verifyPassword(password, storedHash)
-  ) {
-    return json({ message: 'Email or password is incorrect.' }, 401);
+  if (email !== ownerEmail) {
+    return json({
+      message: 'Owner email does not match.'
+    }, 401);
+  }
+
+  const passwordValid = await verifyPassword(password, storedHash);
+
+  if (!passwordValid) {
+    return json({
+      message: 'Password hash does not match.'
+    }, 401);
+  }
+
+  if (!env.DB) {
+    return json({ message: 'Database is not configured.' }, 503);
   }
 
   const token = randomToken();

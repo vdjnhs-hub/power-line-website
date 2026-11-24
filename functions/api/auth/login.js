@@ -8,41 +8,6 @@ import {
   sameOrigin
 } from '../../_lib/auth.js';
 
-function inspectHash(value) {
-  try {
-    const parts = value.split('$');
-
-    if (parts.length !== 4) {
-      return { formatValid: false };
-    }
-
-    const [scheme, iterations, salt, expected] = parts;
-
-    const decode = (v) => {
-      let s = v.replace(/-/g, '+').replace(/_/g, '/');
-      s += '='.repeat((4 - s.length % 4) % 4);
-      return Uint8Array.from(atob(s), c => c.charCodeAt(0));
-    };
-
-    const saltBytes = decode(salt);
-    const hashBytes = decode(expected);
-
-    return {
-      formatValid:
-        scheme === 'pbkdf2' &&
-        Number(iterations) === 210000 &&
-        saltBytes.length === 16 &&
-        hashBytes.length === 32,
-      schemeValid: scheme === 'pbkdf2',
-      iterationsValid: Number(iterations) === 210000,
-      saltLengthValid: saltBytes.length === 16,
-      hashLengthValid: hashBytes.length === 32
-    };
-  } catch {
-    return { formatValid: false };
-  }
-}
-
 export async function onRequestPost({ request, env }) {
   if (!sameOrigin(request)) {
     return json({ message: 'Invalid request origin.' }, 403);
@@ -77,40 +42,19 @@ export async function onRequestPost({ request, env }) {
     }, 401);
   }
 
-  // Check stored hash format
-  const diagnostics = inspectHash(storedHash);
+  let passwordValid = false;
 
-  if (!diagnostics.formatValid) {
+  try {
+    passwordValid = await verifyPassword(password, storedHash);
+  } catch {
     return json({
-      message: 'Password hash format is invalid.',
-      diagnostics
+      message: 'Password verification error.'
     }, 500);
   }
-
-  // PBKDF2 self-test
-  const testHash =
-    'pbkdf2$210000$AAECAwQFBgcICQoLDA0ODw$COjl_wfx4G8EFLGuEG1bdM6XBULvyFY3glmwLtsbNOM';
-
-  const selfTestPassed = await verifyPassword(
-    'POWER-LINE-TEST-ONLY',
-    testHash
-  );
-
-  if (!selfTestPassed) {
-    return json({
-      message: 'PBKDF2 self-test failed.',
-      selfTestPassed: false
-    }, 500);
-  }
-
-  // Verify actual owner password
-  const passwordValid = await verifyPassword(password, storedHash);
 
   if (!passwordValid) {
     return json({
-      message: 'Password verification failed.',
-      diagnostics,
-      selfTestPassed: true
+      message: 'Owner password verification failed.'
     }, 401);
   }
 
@@ -144,5 +88,4 @@ export async function onRequestPost({ request, env }) {
       message: 'Session creation failed.'
     }, 500);
   }
-     }
-   
+}

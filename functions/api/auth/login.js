@@ -1,4 +1,5 @@
- import {
+ 
+import {
   json,
   sha256,
   verifyPassword,
@@ -10,6 +11,10 @@
 function inspectHash(value) {
   try {
     const parts = value.split('$');
+
+    if (parts.length !== 4) {
+      return { formatValid: false };
+    }
 
     const [scheme, iterations, salt, expected] = parts;
 
@@ -24,9 +29,7 @@ function inspectHash(value) {
 
     return {
       formatValid:
-        parts.length === 4 &&
         scheme === 'pbkdf2' &&
-        Number.isInteger(Number(iterations)) &&
         Number(iterations) === 210000 &&
         saltBytes.length === 16 &&
         hashBytes.length === 32,
@@ -36,13 +39,7 @@ function inspectHash(value) {
       hashLengthValid: hashBytes.length === 32
     };
   } catch {
-    return {
-      formatValid: false,
-      schemeValid: false,
-      iterationsValid: false,
-      saltLengthValid: false,
-      hashLengthValid: false
-    };
+    return { formatValid: false };
   }
 }
 
@@ -69,13 +66,18 @@ export async function onRequestPost({ request, env }) {
   const storedHash = String(env.OWNER_PASSWORD_HASH || '').trim();
 
   if (!ownerEmail || !storedHash) {
-    return json({ message: 'Owner credentials are not configured.' }, 503);
+    return json({
+      message: 'Owner credentials are not configured.'
+    }, 503);
   }
 
   if (email !== ownerEmail) {
-    return json({ message: 'Owner email does not match.' }, 401);
+    return json({
+      message: 'Owner email does not match.'
+    }, 401);
   }
 
+  // Check stored hash format
   const diagnostics = inspectHash(storedHash);
 
   if (!diagnostics.formatValid) {
@@ -85,17 +87,37 @@ export async function onRequestPost({ request, env }) {
     }, 500);
   }
 
+  // PBKDF2 self-test
+  const testHash =
+    'pbkdf2$210000$AAECAwQFBgcICQoLDA0ODw$COjl_wfx4G8EFLGuEG1bdM6XBULvyFY3glmwLtsbNOM';
+
+  const selfTestPassed = await verifyPassword(
+    'POWER-LINE-TEST-ONLY',
+    testHash
+  );
+
+  if (!selfTestPassed) {
+    return json({
+      message: 'PBKDF2 self-test failed.',
+      selfTestPassed: false
+    }, 500);
+  }
+
+  // Verify actual owner password
   const passwordValid = await verifyPassword(password, storedHash);
 
   if (!passwordValid) {
     return json({
       message: 'Password verification failed.',
-      diagnostics
+      diagnostics,
+      selfTestPassed: true
     }, 401);
   }
 
   if (!env.DB) {
-    return json({ message: 'Database is not configured.' }, 503);
+    return json({
+      message: 'Database is not configured.'
+    }, 503);
   }
 
   try {
@@ -107,14 +129,20 @@ export async function onRequestPost({ request, env }) {
       'INSERT INTO sessions(token_hash, expires_at) VALUES(?,?)'
     ).bind(hash, expires).run();
 
-    return new Response(JSON.stringify({ owner: true }), {
-      headers: {
-        'content-type': 'application/json',
-        'cache-control': 'no-store',
-        'set-cookie': setCookie(token, 7 * 24 * 60 * 60)
+    return new Response(
+      JSON.stringify({ owner: true }),
+      {
+        headers: {
+          'content-type': 'application/json',
+          'cache-control': 'no-store',
+          'set-cookie': setCookie(token, 7 * 24 * 60 * 60)
+        }
       }
-    });
+    );
   } catch {
-    return json({ message: 'Session creation failed.' }, 500);
+    return json({
+      message: 'Session creation failed.'
+    }, 500);
   }
-}
+     }
+   
